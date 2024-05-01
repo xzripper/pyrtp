@@ -95,6 +95,12 @@ class PyRTP:
         else:
             return (-1, -1)
 
+    def cast_position_horizontal(self, position: tuple[int, int], map_: tuple[int, int]) -> tuple[int, int]:
+        """Create linear mapping for coordinates in horizontal alignment."""
+        cast = self.cast_position(position, map_)
+
+        return (cast[0] / 2, cast[1] * 2)
+
     def run(self, threaded: bool=False, log_address: bool=True) -> None:
         """Run server."""
         if log_address:
