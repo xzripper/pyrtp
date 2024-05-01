@@ -1,0 +1,79 @@
+<!DOCTYPE html> <!-- PyRTP: Client side index page. -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+    <title>Remote Touchpad.</title>
+
+    <style type="text/css">
+        body {
+            background-color: black;
+
+            color: white;
+
+            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+
+    <script>
+        let socket = io();
+
+        let touch = 0;
+
+        socket.on("connect", () => {
+            console.log('Remote Touchpad (PyRTP %Version%).');
+
+            socket.emit("connected", null);
+
+            socket.emit("set_screen_size", [window.innerWidth, window.innerHeight]);
+
+            socket.emit("set_orientation", screen.orientation.type);
+
+            window.addEventListener("touchstart", (event) => {
+                socket.emit("touch_start", [x = event.touches[touch].screenX, y = event.touches[touch].screenY, touch]);
+
+                socket.emit("touched", true);
+
+                document.getElementById("position_indicator_ui").innerHTML = `Position X/Y:<br>${x}f<br>${y}f.`;
+
+                document.getElementById("touch_indicatior_ui").textContent = "Touch: True.";
+            });
+
+            window.addEventListener("touchend", (event) => {
+                socket.emit("touch_end", touch);
+
+                socket.emit("touched", false);
+
+                document.getElementById("touch_indicatior_ui").textContent = "Touch: False.";
+            });
+
+            window.addEventListener("touchmove", (event) => {
+                socket.emit("touch_move", [x = event.touches[touch].screenX, y = event.touches[touch].screenY, touch]);
+
+                document.getElementById("position_indicator_ui").innerHTML = `Position X/Y:<br>${x}f<br>${y}f.`;
+            });
+        });
+
+        window.addEventListener("orientationchange", (event) => {
+            socket.emit("set_orientation", event.target.screen.orientation.type);
+
+            socket.emit("set_screen_size", [window.innerWidth, window.innerHeight]);
+        });
+
+        socket.on("set_touch", (touchPosition) => { touch = touchPosition; });
+    </script>
+</head>
+
+<body>
+    <div style="text-align: center;">
+        <h3 style="font-weight: 500;">Remote Touchpad %Version%</h3>
+
+        <p id="position_indicator_ui">Position X/Y: 0, 0.</p>
+        <p id="touch_indicatior_ui">Touch: False.</p>
+    </div><hr>
+</body>
+</html>
